@@ -90,7 +90,7 @@ else
             echo "*** npm install"
             npm install
             echo "*** bower install"
-            bower --allow-root install
+            bower --allow-root install --config.interactive=false
             echo "*** grunt sass"
             grunt sass
             echo "*** grunt requirejs"

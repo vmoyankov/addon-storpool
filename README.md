@@ -239,7 +239,7 @@ patch -b -V numbered -N -p0 <~/addon-storpool/patches/sunstone/5.2.0/00-datastor
 
 # rebuild the interface
 npm install
-bower --allow-root install
+bower --allow-root install --config.interactive=false
 grunt sass
 grunt requirejs
 popd
