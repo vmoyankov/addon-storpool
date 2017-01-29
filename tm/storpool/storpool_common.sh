@@ -697,6 +697,7 @@ function oneVmInfo()
                             /VM/STATE \
                             /VM/LCM_STATE \
                             /VM/CONTEXT/DISK_ID \
+                            /VM/USER_TEMPLATE/LABELS \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/SOURCE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE_ID \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE \
@@ -716,6 +717,7 @@ function oneVmInfo()
     VMSTATE="${XPATH_ELEMENTS[i++]}"
     LCM_STATE="${XPATH_ELEMENTS[i++]}"
     CONTEXT_DISK_ID="${XPATH_ELEMENTS[i++]}"
+    LABELS="${XPATH_ELEMENTS[i++]}"
     SOURCE="${XPATH_ELEMENTS[i++]}"
     IMAGE_ID="${XPATH_ELEMENTS[i++]}"
     IMAGE="${XPATH_ELEMENTS[i++]}"
@@ -743,6 +745,7 @@ ${TYPE:+TYPE=$TYPE }\
 ${READONLY:+READONLY=$READONLY }\
 ${PERSISTENT:+PERSISTENT=$PERSISTENT }\
 ${IMAGE:+IMAGE=$IMAGE }\
+${LABELS:+LABELS=$LABELS }\
 "
     msg="${HOTPLUG_SAVE_AS:+HOTPLUG_SAVE_AS=$HOTPLUG_SAVE_AS }${HOTPLUG_SAVE_AS_ACTIVE:+HOTPLUG_SAVE_AS_ACTIVE=$HOTPLUG_SAVE_AS_ACTIVE }${HOTPLUG_SAVE_AS_SOURCE:+HOTPLUG_SAVE_AS_SOURCE=$HOTPLUG_SAVE_AS_SOURCE }"
     [ -n "$msg" ] && splog "$msg"
