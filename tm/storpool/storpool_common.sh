@@ -28,6 +28,17 @@ function splog()
     logger -t "${LOG_PREFIX:-tm}_sp_${0##*/}" "${DEBUG_LINENO:+[${BASH_LINENO[-2]}]}$*"
 }
 
+function boolTrue()
+{
+    case "$1" in
+        1|y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)
+            return 0
+            ;;
+        *)
+            return 1
+    esac
+}
+
 #-------------------------------------------------------------------------------
 # Set up the environment to source common tools
 #-------------------------------------------------------------------------------
@@ -53,6 +64,7 @@ DEBUG_oneVmInfo=
 DEBUG_oneDatastoreInfo=
 DEBUG_oneTemplateInfo=
 DEBUG_oneDsDriverAction=
+AUTO_TEMPLATE=1
 
 sprcfile="${TMCOMMON%/*}/../addon-storpoolrc"
 
@@ -286,6 +298,9 @@ EOF
 function storpoolTemplate()
 {
     local _SP_TEMPLATE="$1"
+    if ! boolTrue "$AUTO_TEMPLATE"; then
+        return 0
+    fi
     if [ "$SP_PLACEALL" = "" ]; then
         splog "Datastore template $_SP_TEMPLATE missing 'SP_PLACEALL' attribute."
         exit -1
