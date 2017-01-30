@@ -65,6 +65,8 @@ SP_TEMPLATE_PROPAGATE="YES"
 
 ONEDATASTORE_XML="ds.xml"
 
+AUTO_TEMPLATE=1
+
 # load config
 driverPath="${0%/*}"
 if [ -f "${driverPath}/../../addon-storpoolrc" ]; then
@@ -109,6 +111,17 @@ trap "rm -f \"$lockFile\"" EXIT TERM INT
 # Global arrays ...
 declare -a template_data
 declare -A jFiles
+
+function boolTrue()
+{
+	case "$1" in
+		1|y|Y|yes|Yes|YES|true|True|TRUE|on|On|ON)
+			return 0
+			;;
+		*)
+			return 1
+	esac
+}
 
 function doExpand()
 {
@@ -303,11 +316,13 @@ for i in ${!DS_ID_ARRAY[@]}; do
 	fi
 	
 	if [ -n "$cmd" ]; then
-		storpool template "$template_name" $cmd
-		splog "($?) template $template_name $cmd OLD:$comment API:$SP_API_HTTP_HOST"
-		if [ "$SP_TEMPLATE_PROPAGATE" = "YES" ]; then
-			storpool template "$template_name" propagate 2>&1 >/dev/null
-			splog "($?) template $template_name propagate"
+		if boolTrue "$AUTO_TEMPLATE"; then
+			storpool template "$template_name" $cmd
+			splog "($?) template $template_name $cmd OLD:$comment API:$SP_API_HTTP_HOST"
+			if boolTrue "$SP_TEMPLATE_PROPAGATE"; then
+				storpool template "$template_name" propagate 2>&1 >/dev/null
+				splog "($?) template $template_name propagate"
+			fi
 		fi
 	fi
 	
