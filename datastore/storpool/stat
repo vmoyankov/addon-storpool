@@ -54,14 +54,18 @@ oneDsDriverAction "$DRIVER_PATH"
 # Compute the size
 #-------------------------------------------------------------------------------
 
+error=1
 if [ "${IMAGE_PATH: -4}" = "vmdk" ]; then
     SIZE=$($QEMU_IMG info "${IMAGE_PATH}" | sed -n 's/.*(\([0-9]*\) bytes).*/\1/p')
-    if [ $? -ne 0 ]; then
-        SIZE=0
-    else
-        SIZE=$(echo $SIZE | tr -d "\r")
-        SIZE=$((($SIZE+1048575)/1048576))
-    fi
+    error=$?
+elif [ "${IMAGE_PATH:0:4}" = "one-" ]; then
+    SIZE=`storpoolRetry -j snapshot list | jq -r --arg name "$IMAGE_PATH" '.data|map(select(.name==$name))[]|.size'`
+    error=$?
+fi
+
+if [ $error -eq 0 ]; then
+    SIZE=$(echo $SIZE | tr -d "\r")
+    SIZE=$((($SIZE+1048575)/1048576))
 else
     SIZE=`fs_size $IMAGE_PATH`
 fi
