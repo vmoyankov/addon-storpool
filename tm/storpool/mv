@@ -136,14 +136,16 @@ case "$LCM_STATE" in
         DO_SYMLINK="yes"
         SKIP_CONTEXT=1
         date >>"/tmp/one-${VM_ID}-${DISK_ID}-iso.skip"
-
+        if [ -n "$DR" ]; then
+            SRC_HOST=$DST_HOST
+        fi
     ;;
     *)
         splog ">>> STATE=$VMSTATE LCM_STATE=$LCM_STATE <<<"
     ;;
 esac
 
-
+splog "DS_TEMPLATE_TYPE:$DS_TEMPLATE_TYPE"
 #-------------------------------------------------------------------------------
 # check if it is called in SYSTEM_DS context
 #-------------------------------------------------------------------------------
@@ -238,6 +240,10 @@ if [ "$DS_TEMPLATE_TYPE" = "SYSTEM_DS" ]; then
                 if [ -n "$DETACH_ONLY" ]; then
                     splog "$DETACH_ONLY"
                 else
+                    if storpoolDR "$SP_VOL" "$DR"; then
+                        storpoolVolumeDelete "$SP_VOL" "force"
+                        storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+                    fi
                     storpoolVolumeAttach "$SP_VOL" "$DST_HOST"
                     if [ "$DO_SYMLINK" = "yes" ]; then
                         oneSymlink "$DST_HOST" "$SP_LINK" "$DST_PATH"
@@ -275,6 +281,11 @@ fi
 SP_VOL="${SOURCE##*/}"
 if [ "$CLONE" = "YES" ]; then
     SP_VOL+="-${VM_ID}-${DISK_ID}"
+fi
+
+if storpoolDR "$SP_VOL" "$DR"; then
+    storpoolVolumeDelete "$SP_VOL" "force"
+    storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
 fi
 
 SP_LINK="/dev/storpool/$SP_VOL"

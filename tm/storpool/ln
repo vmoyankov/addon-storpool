@@ -95,6 +95,11 @@ if [ "${READONLY}" = "YES" ]; then
     SP_MODE="ro"
 fi
 
+if storpoolDR "$SP_VOL" "$DR"; then
+    storpoolVolumeDelete "$SP_VOL" "force"
+    storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+fi
+
 storpoolVolumeAttach "$SP_VOL" "$DST_HOST" "$SP_MODE"
 
 oneSymlink "$DST_HOST" "$SP_LINK" "$DST_PATH"

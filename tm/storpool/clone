@@ -72,7 +72,11 @@ SP_LINK="/dev/storpool/$SP_VOL"
 
 storpoolVolumeDelete "$SP_VOL"
 
-storpoolVolumeClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+if storpoolDR "$SP_VOL" "$DR"; then
+    storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+else
+    storpoolVolumeClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+fi
 
 if [ -n "$SIZE" ]; then
     if [ $SIZE -gt ${ORIGINAL_SIZE:-0} ]; then
