@@ -415,7 +415,7 @@ function storpoolVolumeDetach()
 {
     local _SP_VOL="$1" _FORCE="$2" _SP_HOST="$3" _DETACH_ALL="$4" _SOFT_FAIL="$5"
     local _SP_CLIENT volume client
-#    splog "storpoolVolumeDetach($*)"
+    splog "storpoolVolumeDetach($*)"
     if [ "$_DETACH_ALL" = "all" ]; then
         _SP_CLIENT="all"
     else
@@ -712,6 +712,7 @@ function oneVmInfo()
                             /VM/STATE \
                             /VM/LCM_STATE \
                             /VM/CONTEXT/DISK_ID \
+                            /VM/CONTEXT/BSNAPSHOT \
                             /VM/USER_TEMPLATE/LABELS \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/SOURCE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE_ID \
@@ -725,6 +726,7 @@ function oneVmInfo()
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/HOTPLUG_SAVE_AS_ACTIVE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/HOTPLUG_SAVE_AS_SOURCE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/SIZE \
+                            /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/BSNAPSHOT \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/ORIGINAL_SIZE)
 
     unset i
@@ -732,6 +734,7 @@ function oneVmInfo()
     VMSTATE="${XPATH_ELEMENTS[i++]}"
     LCM_STATE="${XPATH_ELEMENTS[i++]}"
     CONTEXT_DISK_ID="${XPATH_ELEMENTS[i++]}"
+    CONTEXT_BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     LABELS="${XPATH_ELEMENTS[i++]}"
     SOURCE="${XPATH_ELEMENTS[i++]}"
     IMAGE_ID="${XPATH_ELEMENTS[i++]}"
@@ -745,6 +748,7 @@ function oneVmInfo()
     HOTPLUG_SAVE_AS_ACTIVE="${XPATH_ELEMENTS[i++]}"
     HOTPLUG_SAVE_AS_SOURCE="${XPATH_ELEMENTS[i++]}"
     SIZE="${XPATH_ELEMENTS[i++]}"
+    BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     ORIGINAL_SIZE="${XPATH_ELEMENTS[i++]}"
 
     [ "$DEBUG_oneVmInfo" = "1" ] || return
@@ -752,6 +756,7 @@ function oneVmInfo()
 ${VMSTATE:+VMSTATE=$VMSTATE }\
 ${LCM_STATE:+LCM_STATE=$LCM_STATE }\
 ${CONTEXT_DISK_ID:+CONTEXT_DISK_ID=$CONTEXT_DISK_ID }\
+${CONTEXT_BSNAPSHOT:+CONTEXT_BSNAPSHOT=$CONTEXT_BSNAPSHOT }\
 ${SOURCE:+SOURCE=$SOURCE }\
 ${IMAGE_ID:+IMAGE_ID=$IMAGE_ID }\
 ${CLONE:+CLONE=$CLONE }\
@@ -761,6 +766,7 @@ ${READONLY:+READONLY=$READONLY }\
 ${PERSISTENT:+PERSISTENT=$PERSISTENT }\
 ${IMAGE:+IMAGE=$IMAGE }\
 ${LABELS:+LABELS=$LABELS }\
+${BSNAPSHOT:+BSNAPSHOT=$BSNAPSHOT }\
 "
     msg="${HOTPLUG_SAVE_AS:+HOTPLUG_SAVE_AS=$HOTPLUG_SAVE_AS }${HOTPLUG_SAVE_AS_ACTIVE:+HOTPLUG_SAVE_AS_ACTIVE=$HOTPLUG_SAVE_AS_ACTIVE }${HOTPLUG_SAVE_AS_SOURCE:+HOTPLUG_SAVE_AS_SOURCE=$HOTPLUG_SAVE_AS_SOURCE }"
     [ -n "$msg" ] && splog "$msg"
@@ -850,6 +856,7 @@ function oneTemplateInfo()
                     /VM/STATE \
                     /VM/LCM_STATE \
                     /VM/PREV_STATE \
+                    /VM/TEMPLATE/CONTEXT/BSNAPSHOT \
                     /VM/TEMPLATE/CONTEXT/DISK_ID)
     unset i
     _VM_ID=${XPATH_ELEMENTS[i++]}
@@ -857,8 +864,10 @@ function oneTemplateInfo()
     _VM_LCM_STATE=${XPATH_ELEMENTS[i++]}
     _VM_PREV_STATE=${XPATH_ELEMENTS[i++]}
     _CONTEXT_DISK_ID=${XPATH_ELEMENTS[i++]}
+    _CONTEXT_BSNAPSHOT=${XPATH_ELEMENTS[i++]}
     if [ "$DEBUG_oneTemplateInfo" = "1" ]; then
-        splog "VM_ID=$_VM_ID VM_STATE=$_VM_STATE VM_LCM_STATE=$_VM_LCM_STATE VM_PREV_STATE=$_VM_PREV_STATE CONTEXT_DISK_ID=$_CONTEXT_DISK_ID"
+        splog "VM_ID=$_VM_ID VM_STATE=$_VM_STATE VM_LCM_STATE=$_VM_LCM_STATE \
+VM_PREV_STATE=$_VM_PREV_STATE CONTEXT_DISK_ID=$_CONTEXT_DISK_ID _CONTEXT_BSNAPSHOT=$_CONTEXT_BSNAPSHOT"
     fi
 
     _XPATH="$(lookup_file "datastore/xpath_multi.py" "${TM_PATH}")"
@@ -875,6 +884,7 @@ function oneTemplateInfo()
                     /VM/TEMPLATE/DISK/TYPE \
                     /VM/TEMPLATE/DISK/CLONE \
                     /VM/TEMPLATE/DISK/READONLY \
+                    /VM/TEMPLATE/DISK/BSNAPSHOT \
                     /VM/TEMPLATE/DISK/FORMAT)
     unset i
     _DISK_TM_MAD=${XPATH_ELEMENTS[i++]}
@@ -886,6 +896,7 @@ function oneTemplateInfo()
     _DISK_TYPE=${XPATH_ELEMENTS[i++]}
     _DISK_CLONE=${XPATH_ELEMENTS[i++]}
     _DISK_READONLY=${XPATH_ELEMENTS[i++]}
+    _DISK_BSNAPSHOT=${XPATH_ELEMENTS[i++]}
     _DISK_FORMAT=${XPATH_ELEMENTS[i++]}
 
     _OLDIFS=$IFS
@@ -899,11 +910,12 @@ function oneTemplateInfo()
     DISK_TYPE_ARRAY=($_DISK_TYPE)
     DISK_CLONE_ARRAY=($_DISK_CLONE)
     DISK_READONLY_ARRAY=($_DISK_READONLY)
+    DISK_BSNAPSHOT_ARRAY=($_DISK_BSNAPSHOT)
     DISK_FORMAT_ARRAY=($_DISK_FORMAT)
     IFS=$_OLDIFS
 
     if [ "$DEBUG_oneTemplateInfo" = "1" ]; then
-        splog "[oneTemplateInfo] disktm:$_DISK_TM_MAD ds:$_DISK_DATASTORE_ID disk:$_DISK_ID cluster:$_DISK_CLUSTER_ID src:$_DISK_SOURCE persistent:$_DISK_PERSISTENT type:$_DISK_TYPE clone:$_DISK_CLONE readonly:$_DISK_READONLY format:$_DISK_FORMAT"
+        splog "[oneTemplateInfo] disktm:$_DISK_TM_MAD ds:$_DISK_DATASTORE_ID disk:$_DISK_ID cluster:$_DISK_CLUSTER_ID src:$_DISK_SOURCE persistent:$_DISK_PERSISTENT type:$_DISK_TYPE clone:$_DISK_CLONE readonly:$_DISK_READONLY format:$_DISK_FORMAT bsnap:$_DISK_BSNAPSHOT"
 #        echo $_TEMPLATE | base64 -d >/tmp/one-template-${_VM_ID}-${0##*/}-${_VM_STATE}.xml
     fi
 }
@@ -955,6 +967,7 @@ function oneDsDriverAction()
                     /DS_DRIVER_ACTION_DATA/IMAGE/CLONING_OPS \
                     /DS_DRIVER_ACTION_DATA/IMAGE/CLONES \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TARGET_SNAPSHOT \
+                    /DS_DRIVER_ACTION_DATA/IMAGE/BSNAPSHOT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/SIZE)
 
 
@@ -995,6 +1008,7 @@ function oneDsDriverAction()
     CLONING_OPS="${XPATH_ELEMENTS[i++]}"
     CLONES="${XPATH_ELEMENTS[i++]}"
     TARGET_SNAPSHOT="${XPATH_ELEMENTS[i++]}"
+    BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     SIZE="${XPATH_ELEMENTS[i++]}"
 
     [ -n "$SP_API_HTTP_HOST" ] && export SP_API_HTTP_HOST || unset SP_API_HTTP_HOST
@@ -1035,6 +1049,7 @@ ${BRIDGE_LIST:+BRIDGE_LIST=$BRIDGE_LIST }\
 ${EXPORT_BRIDGE_LIST:+EXPORT_BRIDGE_LIST=$EXPORT_BRIDGE_LIST }\
 ${DRIVER:+DRIVER=$DRIVER }\
 ${BASE_PATH:+BASE_PATH=$BASE_PATH }\
+${BSNAPSHOT:+BSNAPSHOT=$BSNAPSHOT }\
 "
 }
 
@@ -1091,4 +1106,27 @@ ${SP_API_HTTP_HOST:+SP_API_HTTP_HOST=$SP_API_HTTP_HOST }\
 ${SP_API_HTTP_PORT:+SP_API_HTTP_PORT=$SP_API_HTTP_PORT }\
 ${SP_AUTH_TOKEN:+SP_AUTH_TOKEN=available }\
 "
+}
+
+function storpoolDR()
+{
+    local _SNAP="$1" _DR="$2"
+    splog "SNAP:$_SNAP DR:$_DR"
+    [ -n "$_DR" ] || return 1
+    prevId=0
+    while IFS=',' read name migrating syncingDataBytes; do
+        name=${name//\"/}
+        nameId=${name##*@}
+        if [ $nameId -gt $prevId ]; then
+            if [ "$migrating" = "false" ]; then
+                PARENT="$name"
+                splog "PARENT:$PARENT"
+            else
+                splog "$name is newer but not complete!"
+            fi
+        fi
+        prevId=$nameId
+    done < <(storpoolRetry -j volume status | jq -r --arg name "${_SNAP}@" '.data|map(select(.name|contains($name)))[]|[.name,.migrating,.syncingDataBytes]|@csv')
+
+    SP_PARENT="$PARENT"
 }

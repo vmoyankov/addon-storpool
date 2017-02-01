@@ -87,6 +87,19 @@ log "Generating context block device"
 ISO_DIR="$DS_DIR/.isofiles/$VM_ID"
 ISO_FILE="$ISO_DIR/$VM_ID.iso"
 
+SP_VOL="one-sys-${VM_ID}-${DISK_ID}-iso"
+SP_LINK="/dev/storpool/$SP_VOL"
+SP_TEMPLATE="one-ds-$DS_ID"
+
+if storpoolDR "$SP_VOL" "$DR"; then
+    storpoolVolumeDelete "$SP_VOL" "force"
+    storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+    storpoolVolumeAttach "$SP_VOL" "$DST_HOST" "ro"
+    MONITOR_TM_MAD="storpool"
+    oneSymlink "$DST_HOST" "$SP_LINK" "$DST_PATH" "${DST_PATH}.iso"
+    exit 0
+fi
+
 exec_and_set_error "mkdir -p $ISO_DIR" \
     "Could not create tmp dir to make context dev"
 [ -n "$ERROR" ] && exit_error
@@ -119,9 +132,6 @@ exec_and_set_error "$MKISOFS -o $ISO_FILE -V CONTEXT -J -R $ISO_DIR" \
 
 SP_SIZE=$(du -b $ISO_FILE | cut -f1)
 SP_SIZE=$(( (SP_SIZE +511) /512 *512 ))
-SP_VOL="one-sys-${VM_ID}-${DISK_ID}-iso"
-SP_LINK="/dev/storpool/$SP_VOL"
-SP_TEMPLATE="one-ds-$DS_ID"
 
 CREATE_CONTEXT_ISO=1
 skip_context="/tmp/one-${VM_ID}-${DISK_ID}-iso.skip"

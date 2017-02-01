@@ -82,36 +82,41 @@ SP_TEMPLATE="one-ds-$DS_ID"
 
 storpoolTemplate "$SP_TEMPLATE"
 
-storpoolVolumeCreate "$SP_VOL" "$SIZE"M "$SP_TEMPLATE"
+if storpoolDR "$SP_VOL" "$DR"; then
+    storpoolVolumeDelete "$SP_VOL" "force"
+    storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+else
+    storpoolVolumeCreate "$SP_VOL" "$SIZE"M "$SP_TEMPLATE"
 
-if [ "${FSTYPE,,}" != "raw" ]; then
-    if [ "$FSTYPE" = "swap" ]; then
-        MKFS_CMD="$MKSWAP -L swap $SP_LINK"
-    else
-        MKFS_CMD=`mkfs_command "$SP_LINK" "$FSTYPE" "$SIZE"`
+    if [ "${FSTYPE,,}" != "raw" ]; then
+        if [ "$FSTYPE" = "swap" ]; then
+            MKFS_CMD="$MKSWAP -L swap $SP_LINK"
+        else
+            MKFS_CMD=`mkfs_command "$SP_LINK" "$FSTYPE" "$SIZE"`
+        fi
+
+        trapAdd "splog \"return \$? \"; storpoolVolumeDetach \"$SP_VOL\" \"force\" \"\" \"all\"; storpoolVolumeDelete \"$SP_VOL\" force snaps"
+
+        if [ -n "$BRIDGE_LIST" ]; then
+            splog "BRIDGE_LIST:$BRIDGE_LIST"
+            R_HOST=`get_destination_host $VM_ID`
+            storpoolVolumeAttach "$SP_VOL" "$R_HOST"
+
+            splog "run on $R_HOST $MKFS_CMD"
+            ssh_exec_and_log "$R_HOST" "$MKFS_CMD" \
+               "Error running $MKFS_CMD on $R_HOST"
+        else
+            storpoolVolumeAttach "$SP_VOL"
+
+            splog "run $MKFS_CMD"
+            exec_and_log "$MKFS_CMD" \
+               "Error running $MKFS_CMD"
+        fi
+
+        trapReset
+
+        storpoolVolumeDetach "$SP_VOL" "force" "" "all"
     fi
-
-    trapAdd "splog \"return \$? \"; storpoolVolumeDetach \"$SP_VOL\" \"force\" \"\" \"all\"; storpoolVolumeDelete \"$SP_VOL\" force snaps"
-
-    if [ -n "$BRIDGE_LIST" ]; then
-        splog "BRIDGE_LIST:$BRIDGE_LIST"
-        R_HOST=`get_destination_host $VM_ID`
-        storpoolVolumeAttach "$SP_VOL" "$R_HOST"
-
-        splog "run on $R_HOST $MKFS_CMD"
-        ssh_exec_and_log "$R_HOST" "$MKFS_CMD" \
-           "Error running $MKFS_CMD on $R_HOST"
-    else
-        storpoolVolumeAttach "$SP_VOL"
-
-        splog "run $MKFS_CMD"
-        exec_and_log "$MKFS_CMD" \
-           "Error running $MKFS_CMD"
-    fi
-
-    trapReset
-
-    storpoolVolumeDetach "$SP_VOL" "force" "" "all"
 fi
 
 storpoolVolumeAttach "$SP_VOL" "$DST_HOST"
