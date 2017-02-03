@@ -56,17 +56,11 @@ function exit_error
 
 oneDatastoreInfo "$DS_ID"
 
-if [ "$SP_PLACEALL" = "" ]; then
-    error_message "Datastore template missing 'SP_PLACEALL' attribute."
-    exit -1
-fi
-if [ "$SP_PLACETAIL" = "" ]; then
-    SP_PLACETAIL="$SP_PLACEALL"
-fi
-if [ -n "${SP_REPLICATION/[123]/}" ] || [ -n "${SP_REPLICATION/[[:digit:]]/}" ]; then
-    error_message "Datastore template with unknown value for 'SP_REPLICATION' attribute '$SP_REPLICATION'."
-    exit -1
-fi
+#-------------------------------------------------------------------------------
+# Get VM information
+#-------------------------------------------------------------------------------
+
+oneVmInfo "$VM_ID"
 
 #-------------------------------------------------------------------------------
 # Set dst path and dirs
@@ -82,8 +76,6 @@ DISK_ID=$(echo $DST | awk -F. '{print $NF}')
 # Build the Context Block device (locally) and copy it remotely
 #-------------------------------------------------------------------------------
 
-log "Generating context block device"
-
 ISO_DIR="$DS_DIR/.isofiles/$VM_ID"
 ISO_FILE="$ISO_DIR/$VM_ID.iso"
 
@@ -91,7 +83,7 @@ SP_VOL="one-sys-${VM_ID}-${DISK_ID}-iso"
 SP_LINK="/dev/storpool/$SP_VOL"
 SP_TEMPLATE="one-ds-$DS_ID"
 
-if storpoolDR "$SP_VOL" "$DR"; then
+if storpoolDR "$CONTEXT_BSNAPSHOT"; then
     storpoolVolumeDelete "$SP_VOL" "force"
     storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
     storpoolVolumeAttach "$SP_VOL" "$DST_HOST" "ro"
@@ -99,6 +91,8 @@ if storpoolDR "$SP_VOL" "$DR"; then
     oneSymlink "$DST_HOST" "$SP_LINK" "$DST_PATH" "${DST_PATH}.iso"
     exit 0
 fi
+
+log "Generating context block device"
 
 exec_and_set_error "mkdir -p $ISO_DIR" \
     "Could not create tmp dir to make context dev"

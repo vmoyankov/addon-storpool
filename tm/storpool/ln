@@ -95,7 +95,7 @@ if [ "${READONLY}" = "YES" ]; then
     SP_MODE="ro"
 fi
 
-if storpoolDR "$SP_VOL" "$DR"; then
+if storpoolDR "$BSNAPSHOT"; then
     storpoolVolumeDelete "$SP_VOL" "force"
     storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
 fi

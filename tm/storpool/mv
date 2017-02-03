@@ -175,6 +175,11 @@ if [ "$DS_TEMPLATE_TYPE" = "SYSTEM_DS" ]; then
                 if [ -n "$DETACH_ONLY" ]; then
                     splog "$DETACH_ONLY"
                 else
+                    BSNAPSHOT="${_CONTEXT_BSNAPSHOT}"
+                    if storpoolDR "$BSNAPSHOT"; then
+                        storpoolVolumeDelete "$SP_VOL" "force"
+                        storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
+                    fi
                     storpoolVolumeAttach "$SP_VOL" "$DST_HOST" "ro"
                     if [ "$DO_SYMLINK" = "yes" ]; then
                         oneSymlink "$DST_HOST" "$SP_LINK" "$CTX_PATH" "${CTX_PATH}.iso"
@@ -240,7 +245,8 @@ if [ "$DS_TEMPLATE_TYPE" = "SYSTEM_DS" ]; then
                 if [ -n "$DETACH_ONLY" ]; then
                     splog "$DETACH_ONLY"
                 else
-                    if storpoolDR "$SP_VOL" "$DR"; then
+                    BSNAPSHOT="${DISK_BSNAPSHOT_ARRAY[i]}"
+                    if storpoolDR "$BSNAPSHOT"; then
                         storpoolVolumeDelete "$SP_VOL" "force"
                         storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
                     fi
@@ -283,7 +289,7 @@ if [ "$CLONE" = "YES" ]; then
     SP_VOL+="-${VM_ID}-${DISK_ID}"
 fi
 
-if storpoolDR "$SP_VOL" "$DR"; then
+if storpoolDR "$BSNAPSHOT"; then
     storpoolVolumeDelete "$SP_VOL" "force"
     storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
 fi
