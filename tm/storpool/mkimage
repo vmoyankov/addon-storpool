@@ -49,6 +49,7 @@ splog "SIZE=$SIZE FSTYPE=$FSTYPE DST=$DST VM_ID=$VM_ID DS_ID=$DS_ID"
 
 oneDatastoreInfo "$DS_ID"
 
+
 if [ "$SP_PLACEALL" = "" ]; then
     error_message "Datastore template missing 'SP_PLACEALL' attribute."
     exit -1
@@ -82,7 +83,9 @@ SP_TEMPLATE="one-ds-$DS_ID"
 
 storpoolTemplate "$SP_TEMPLATE"
 
-if storpoolDR "$SP_VOL" "$DR"; then
+oneVmInfo "$VM_ID" "$DISK_ID"
+
+if storpoolDR "$BSNAPSHOT"; then
     storpoolVolumeDelete "$SP_VOL" "force"
     storpoolSnapshotClone "$SP_PARENT" "$SP_VOL" "$SP_TEMPLATE"
 else
