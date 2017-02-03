@@ -1110,7 +1110,7 @@ ${SP_AUTH_TOKEN:+SP_AUTH_TOKEN=available }\
 
 function storpoolDR()
 {
-    local _SNAP="$1" _DR="$2"
+    local _SNAP="$1" _DR="$2" _PARENT=
     splog "SNAP:$_SNAP DR:$_DR"
     [ -n "$_DR" ] || return 1
     prevId=0
@@ -1119,14 +1119,17 @@ function storpoolDR()
         nameId=${name##*@}
         if [ $nameId -gt $prevId ]; then
             if [ "$migrating" = "false" ]; then
-                PARENT="$name"
-                #splog "PARENT:$PARENT"
+                _PARENT="$name"
+                #splog "PARENT:$_PARENT"
             else
-                splog "$name is newer but not complete! migrating:$migrating syncingDataBytes:$syncingDataBytes"
+                splog "$name is newer but not complete! syncingDataBytes:$syncingDataBytes"
             fi
         fi
         prevId=$nameId
     done < <(storpoolRetry -j volume status | jq -r --arg name "${_SNAP}@" '.data|map(select(.name|contains($name)))[]|[.name,.migrating,.syncingDataBytes]|@csv')
-
-    SP_PARENT="$PARENT"
+    if [ -n "$_PARENT" ]; then
+        SP_PARENT="$_PARENT"
+    else
+        return 1
+    fi
 }
