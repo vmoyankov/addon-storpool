@@ -1120,9 +1120,9 @@ function storpoolDR()
         if [ $nameId -gt $prevId ]; then
             if [ "$migrating" = "false" ]; then
                 PARENT="$name"
-                splog "PARENT:$PARENT"
+                #splog "PARENT:$PARENT"
             else
-                splog "$name is newer but not complete!"
+                splog "$name is newer but not complete! migrating:$migrating syncingDataBytes:$syncingDataBytes"
             fi
         fi
         prevId=$nameId
