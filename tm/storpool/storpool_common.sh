@@ -711,8 +711,8 @@ function oneVmInfo()
                             /VM/DEPLOY_ID \
                             /VM/STATE \
                             /VM/LCM_STATE \
-                            /VM/CONTEXT/DISK_ID \
-                            /VM/CONTEXT/BSNAPSHOT \
+                            /VM/TEMPLATE/CONTEXT/DISK_ID \
+                            /VM/TEMPLATE/CONTEXT/BSNAPSHOT \
                             /VM/USER_TEMPLATE/LABELS \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/SOURCE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE_ID \
