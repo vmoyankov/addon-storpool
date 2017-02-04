@@ -1114,8 +1114,9 @@ function storpoolDR()
     splog "storpoolDR($_SNAP)"
     #[ -n "$DR" ] || return 129
     [ -n "$_SNAP" ] || return 129
-    if [ "${_SNAP/@}" = "$_SNAP"  ]; then
+    if [ "${_SNAP/@}" != "$_SNAP"  ]; then
         _PARENT="$_SNAP"
+        splog "${_SNAP/@} != $_SNAP"
     else
         prevId=0
         while IFS=',' read name migrating syncingDataBytes; do
