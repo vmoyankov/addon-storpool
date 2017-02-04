@@ -1111,8 +1111,8 @@ ${SP_AUTH_TOKEN:+SP_AUTH_TOKEN=available }\
 function storpoolDR()
 {
     local _SNAP="$1" _PARENT=
-    splog "SNAP:$_SNAP DR:$_DR"
-    [ -n "$_DR" ] || return 128
+    splog "storpoolDR($_SNAP)"
+    #[ -n "$DR" ] || return 129
     [ -n "$_SNAP" ] || return 129
     if [ "${_SNAP/@}" = "$_SNAP"  ]; then
         _PARENT="$_SNAP"
