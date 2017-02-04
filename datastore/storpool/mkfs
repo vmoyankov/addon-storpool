@@ -50,6 +50,21 @@ ID=$2
 
 oneDsDriverAction "$DRIVER_PATH"
 
+SP_VOL="one-img-${ID}"
+SP_LINK="/dev/storpool/$SP_VOL"
+SP_TEMPLATE="one-ds-${DATASTORE_ID}"
+SP_DST="${SP_TEMPLATE}/${SP_VOL}"
+
+
+#-------------------------------------------------------------------------------
+# Image FSTYPE:save_as. If it is HOT snapshot then tm/cpds will take care of it later
+#-------------------------------------------------------------------------------
+
+if [ "${$DESCRIPTION/DRBACKUP}" != "$DESCRIPTION" ]; then
+    splog "DRBACKUP string in description. exit"
+    echo "$SP_DST"
+    exit 0
+fi
 #-------------------------------------------------------------------------------
 # Get datastore host, validate variables and set up datastore
 #-------------------------------------------------------------------------------
@@ -66,11 +81,6 @@ fi
 set_up_datastore "$BASE_PATH" "$RESTRICTED_DIRS" "$SAFE_DIRS"
 
 IMAGE_HASH=`generate_image_hash`
-
-SP_VOL="one-img-${ID}"
-SP_LINK="/dev/storpool/$SP_VOL"
-SP_TEMPLATE="one-ds-${DATASTORE_ID}"
-SP_DST="${SP_TEMPLATE}/${SP_VOL}"
 
 echo "$SP_DST"
 

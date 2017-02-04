@@ -955,6 +955,7 @@ function oneDsDriverAction()
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/DRIVER \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/FORMAT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/BSNAPSHOT \
+                    /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/DESCRIPTION \
                     /DS_DRIVER_ACTION_DATA/IMAGE/PATH \
                     /DS_DRIVER_ACTION_DATA/IMAGE/PERSISTENT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/FSTYPE \
@@ -996,6 +997,7 @@ function oneDsDriverAction()
     DRIVER="${XPATH_ELEMENTS[i++]}"
     FORMAT="${XPATH_ELEMENTS[i++]}"
     BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
+    DESCRIPTION="${XPATH_ELEMENTS[i++]}"
     IMAGE_PATH="${XPATH_ELEMENTS[i++]}"
     PERSISTENT="${XPATH_ELEMENTS[i++]}"
     FSTYPE="${XPATH_ELEMENTS[i++]}"
