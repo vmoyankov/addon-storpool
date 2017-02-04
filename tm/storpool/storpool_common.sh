@@ -954,6 +954,7 @@ function oneDsDriverAction()
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/SHA1 \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/DRIVER \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/FORMAT \
+                    /DS_DRIVER_ACTION_DATA/IMAGE/TEMPLATE/BSNAPSHOT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/PATH \
                     /DS_DRIVER_ACTION_DATA/IMAGE/PERSISTENT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/FSTYPE \
@@ -967,7 +968,6 @@ function oneDsDriverAction()
                     /DS_DRIVER_ACTION_DATA/IMAGE/CLONING_OPS \
                     /DS_DRIVER_ACTION_DATA/IMAGE/CLONES \
                     /DS_DRIVER_ACTION_DATA/IMAGE/TARGET_SNAPSHOT \
-                    /DS_DRIVER_ACTION_DATA/IMAGE/BSNAPSHOT \
                     /DS_DRIVER_ACTION_DATA/IMAGE/SIZE)
 
 
@@ -995,6 +995,7 @@ function oneDsDriverAction()
     SHA1="${XPATH_ELEMENTS[i++]}"
     DRIVER="${XPATH_ELEMENTS[i++]}"
     FORMAT="${XPATH_ELEMENTS[i++]}"
+    BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     IMAGE_PATH="${XPATH_ELEMENTS[i++]}"
     PERSISTENT="${XPATH_ELEMENTS[i++]}"
     FSTYPE="${XPATH_ELEMENTS[i++]}"
@@ -1008,7 +1009,6 @@ function oneDsDriverAction()
     CLONING_OPS="${XPATH_ELEMENTS[i++]}"
     CLONES="${XPATH_ELEMENTS[i++]}"
     TARGET_SNAPSHOT="${XPATH_ELEMENTS[i++]}"
-    BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     SIZE="${XPATH_ELEMENTS[i++]}"
 
     [ -n "$SP_API_HTTP_HOST" ] && export SP_API_HTTP_HOST || unset SP_API_HTTP_HOST
