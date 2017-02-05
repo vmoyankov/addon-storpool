@@ -752,7 +752,7 @@ function oneVmInfo()
     ORIGINAL_SIZE="${XPATH_ELEMENTS[i++]}"
 
     [ "$DEBUG_oneVmInfo" = "1" ] || return
-    splog "\
+    splog "oneVmInfo \
 ${VMSTATE:+VMSTATE=$VMSTATE }\
 ${LCM_STATE:+LCM_STATE=$LCM_STATE }\
 ${CONTEXT_DISK_ID:+CONTEXT_DISK_ID=$CONTEXT_DISK_ID }\
