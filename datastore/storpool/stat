@@ -67,8 +67,8 @@ else
 fi
 
 if [ "$SIZE" = "0" ]; then
-    log_error "Cannot determine size for $IMAGE_PATH"
-    splog "Cannot determine size for $IMAGE_PATH"
+    log_error "Cannot determine size for $IMAGE_PATH ($error)"
+    splog "Cannot determine size for $IMAGE_PATH ($error)"
     exit -1
 fi
 
