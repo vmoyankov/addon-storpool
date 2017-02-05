@@ -926,9 +926,9 @@ function oneDsDriverAction()
 {
     local _DRIVER_PATH="$1"
     local _XPATH="$(lookup_file "datastore/xpath.rb" "${_DRIVER_PATH}") -b $DRV_ACTION"
+#    dumpTemplate "$DRV_ACTION"
 
     unset i XPATH_ELEMENTS
-
     while IFS= read -r -d '' element; do
         XPATH_ELEMENTS[i++]="$element"
     done < <($_XPATH     /DS_DRIVER_ACTION_DATA/DATASTORE/BASE_PATH \
