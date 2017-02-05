@@ -77,7 +77,7 @@ if [ "$SRC_DS_ID" -ne "$DATASTORE_ID" ]; then
     DST_TM_MAD="$TM_MAD"
 
 #    env >/tmp/ds_clone-$ID.dst
-    oneDatastoreInfo "$SRC_DS_ID"
+    oneDsInfo "$SRC_DS_ID"
 #    env >/tmp/ds_clone-$ID.src
     SRC_BRIDGE_LIST="$SP_BRIDGE_LIST"
     SRC_SP_API_HTTP_HOST="$SP_API_HTTP_HOST"

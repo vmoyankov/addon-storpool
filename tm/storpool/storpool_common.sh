@@ -61,7 +61,7 @@ DEBUG_TRAPS=
 DEBUG_SP_RUN_CMD=1
 DEBUG_SP_RUN_CMD_VERBOSE=
 DEBUG_oneVmInfo=
-DEBUG_oneDatastoreInfo=
+DEBUG_oneDsInfo=
 DEBUG_oneTemplateInfo=
 DEBUG_oneDsDriverAction=
 AUTO_TEMPLATE=1
@@ -772,7 +772,7 @@ ${BSNAPSHOT:+BSNAPSHOT=$BSNAPSHOT }\
     [ -n "$msg" ] && splog "$msg"
 }
 
-function oneDatastoreInfo()
+function oneDsInfo()
 {
     local _DS_ID="$1"
     local _XPATH="$(lookup_file "datastore/xpath.rb" "${TM_PATH}")"
@@ -825,7 +825,7 @@ function oneDatastoreInfo()
     [ -n "$SP_API_HTTP_PORT" ] && export SP_API_HTTP_PORT || unset SP_API_HTTP_PORT
     [ -n "$SP_AUTH_TOKEN" ] && export SP_AUTH_TOKEN || unset SP_AUTH_TOKEN
 
-    [ "$DEBUG_oneDatastoreInfo" = "1" ] || return
+    [ "$DEBUG_oneDsInfo" = "1" ] || return
     _MSG="${DS_TYPE:+DS_TYPE=$DS_TYPE }${DS_TEMPLATE_TYPE:+TEMPLATE_TYPE=$DS_TEMPLATE_TYPE }"
     _MSG+="${DS_DISK_TYPE:+DISK_TYPE=$DS_DISK_TYPE }${DS_TM_MAD:+TM_MAD=$DS_TM_MAD }"
     _MSG+="${DS_BASE_PATH:+BASE_PATH=$DS_BASE_PATH }${DS_CLUSTER_ID:+CLUSTER_ID=$DS_CLUSTER_ID }"
