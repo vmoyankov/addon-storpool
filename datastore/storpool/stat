@@ -55,7 +55,7 @@ oneDsDriverAction "$DRIVER_PATH"
 #-------------------------------------------------------------------------------
 
 if [ "${IMAGE_PATH:0:4}" = "one-" ]; then
-    SIZE=`storpoolRetry -j snapshot list | jq -r --arg name "$IMAGE_PATH" '.data|map(select(.name==$name))[]|.size'`
+    SIZE=`storpoolRetry -j snapshot list | jq -r --arg name "${IMAGE_PATH}@" '.data|map(select(.name|contains($name)))[]|.size'|tail -n 1`
     error=$?
     if [ $error -ne 0 ]; then
         SIZE=0
