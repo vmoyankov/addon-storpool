@@ -826,7 +826,7 @@ function oneDsInfo()
     [ -n "$SP_AUTH_TOKEN" ] && export SP_AUTH_TOKEN || unset SP_AUTH_TOKEN
 
     [ "$DEBUG_oneDsInfo" = "1" ] || return
-    _MSG="${DS_TYPE:+DS_TYPE=$DS_TYPE }${DS_TEMPLATE_TYPE:+TEMPLATE_TYPE=$DS_TEMPLATE_TYPE }"
+    _MSG="oneDsInfo ${DS_TYPE:+DS_TYPE=$DS_TYPE }${DS_TEMPLATE_TYPE:+TEMPLATE_TYPE=$DS_TEMPLATE_TYPE }"
     _MSG+="${DS_DISK_TYPE:+DISK_TYPE=$DS_DISK_TYPE }${DS_TM_MAD:+TM_MAD=$DS_TM_MAD }"
     _MSG+="${DS_BASE_PATH:+BASE_PATH=$DS_BASE_PATH }${DS_CLUSTER_ID:+CLUSTER_ID=$DS_CLUSTER_ID }"
     _MSG+="${DS_SHARED:+SHARED=$DS_SHARED }${SP_REPLICATION:+SP_REPLICATION=$SP_REPLICATION }"
@@ -866,7 +866,7 @@ function oneTemplateInfo()
     _CONTEXT_BSNAPSHOT=${XPATH_ELEMENTS[i++]}
     _CONTEXT_DISK_ID=${XPATH_ELEMENTS[i++]}
     if [ "$DEBUG_oneTemplateInfo" = "1" ]; then
-        splog "VM_ID=$_VM_ID VM_STATE=$_VM_STATE VM_LCM_STATE=$_VM_LCM_STATE \
+        splog "oneTemplateInfo VM_ID=$_VM_ID VM_STATE=$_VM_STATE VM_LCM_STATE=$_VM_LCM_STATE \
 VM_PREV_STATE=$_VM_PREV_STATE CONTEXT_DISK_ID=$_CONTEXT_DISK_ID _CONTEXT_BSNAPSHOT=$_CONTEXT_BSNAPSHOT"
     fi
 
@@ -1019,7 +1019,7 @@ function oneDsDriverAction()
 
     [ "$DEBUG_oneDsDriverAction" = "1" ] || return
 
-    splog "\
+    splog "oneDsDriverAction \
 ${ID:+ID=$ID }\
 ${DATASTORE_ID:+DATASTORE_ID=$DATASTORE_ID }\
 ${CLUSTER_ID:+CLUSTER_ID=$CLUSTER_ID }\
@@ -1095,7 +1095,7 @@ function oneMarketDriverAction()
 
     [ "$DEBUG_oneMarketDriverAction" = "1" ] || return
 
-    splog "\
+    splog "oneMarketDriverAction \
 ${IMPORT_SOURCE:+IMPORT_SOURCE=$IMPORT_SOURCE }\
 ${FORMAT:+FORMAT=$FORMAT }\
 ${DISPOSE:+DISPOSE=$DISPOSE }\
