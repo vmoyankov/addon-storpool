@@ -55,6 +55,14 @@ SP_LINK="/dev/storpool/$SP_VOL"
 SP_TEMPLATE="one-ds-${DATASTORE_ID}"
 SP_DST="$SP_TEMPLATE/$SP_VOL"
 
+if [ "${DESCRIPTION/DRBACKUP}" != "$DESCRIPTION" ]; then
+    splog "DRBACKUP string in description. exit $SP_DST"
+    echo "$SP_DST"
+    exit 0
+else
+    splog "${DESCRIPTION/DRBACKUP} == $DESCRIPTION"
+fi
+
 #-------------------------------------------------------------------------------
 # cp^Wclone from backup snapshot
 #-------------------------------------------------------------------------------
