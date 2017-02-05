@@ -60,7 +60,7 @@ SP_DST="${SP_TEMPLATE}/${SP_VOL}"
 # Image FSTYPE:save_as. If it is HOT snapshot then tm/cpds will take care of it later
 #-------------------------------------------------------------------------------
 
-if [ "${$DESCRIPTION/DRBACKUP}" != "$DESCRIPTION" ]; then
+if [ "${DESCRIPTION/DRBACKUP}" != "$DESCRIPTION" ]; then
     splog "DRBACKUP string in description. exit"
     echo "$SP_DST"
     exit 0
