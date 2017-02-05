@@ -54,7 +54,7 @@ function exit_error
 # Get Datastore information
 #-------------------------------------------------------------------------------
 
-oneDatastoreInfo "$DS_ID"
+oneDsInfo "$DS_ID"
 
 #-------------------------------------------------------------------------------
 # Get VM information

@@ -47,7 +47,7 @@ splog "SIZE=$SIZE FSTYPE=$FSTYPE DST=$DST VM_ID=$VM_ID DS_ID=$DS_ID"
 # Get template information from datastore TEMPLATE definition
 #-------------------------------------------------------------------------------
 
-oneDatastoreInfo "$DS_ID"
+oneDsInfo "$DS_ID"
 
 
 if [ "$SP_PLACEALL" = "" ]; then
