@@ -61,6 +61,10 @@ if [ "${IMAGE_PATH: -4}" = "vmdk" ]; then
 elif [ "${IMAGE_PATH:0:4}" = "one-" ]; then
     SIZE=`storpoolRetry -j snapshot list | jq -r --arg name "$IMAGE_PATH" '.data|map(select(.name==$name))[]|.size'`
     error=$?
+    if [ $error -ne 0 ] || [ "$SIZE" = "" ]; then
+        SIZE=`storpoolRetry -j snapshot list | jq -r --arg name "${IMAGE_PATH}@" '.data|map(select(.name|startswith($name)))[]|.size'|tail -n 1`
+        error=$?
+    fi
 fi
 
 if [ $error -eq 0 ]; then
