@@ -93,6 +93,11 @@ if [ "$DS_TEMPLATE_TYPE" = "SYSTEM_DS" ]; then
     ssh_exec_and_log "$DST_HOST" "$RM_CMD" \
              "Error deleting $SP_VOL in $DST_HOST($DST_PATH)"
 
+    if [ -f "/var/lib/one/vms/$VM_ID/lastBackup" ]; then
+        rm -f "/var/lib/one/vms/$VM_ID/lastBackup"
+        splog "rm -f /var/lib/one/vms/$VM_ID/lastBackup"
+    fi
+
     splog "END [SYSTEM_DS]"
     exit 0
 fi

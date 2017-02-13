@@ -714,6 +714,7 @@ function oneVmInfo()
                             /VM/TEMPLATE/CONTEXT/DISK_ID \
                             /VM/TEMPLATE/CONTEXT/BSNAPSHOT \
                             /VM/USER_TEMPLATE/LABELS \
+                            /VM/USER_TEMPLATE/USER_TEMPLATE/PRIMARY_VM_ID \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/SOURCE \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE_ID \
                             /VM/TEMPLATE/DISK[DISK_ID=$_DISK_ID]/IMAGE \
@@ -736,6 +737,7 @@ function oneVmInfo()
     CONTEXT_DISK_ID="${XPATH_ELEMENTS[i++]}"
     CONTEXT_BSNAPSHOT="${XPATH_ELEMENTS[i++]}"
     LABELS="${XPATH_ELEMENTS[i++]}"
+    PRIMARY_VM_ID="${XPATH_ELEMENTS[i++]}"
     SOURCE="${XPATH_ELEMENTS[i++]}"
     IMAGE_ID="${XPATH_ELEMENTS[i++]}"
     IMAGE="${XPATH_ELEMENTS[i++]}"
@@ -766,6 +768,7 @@ ${READONLY:+READONLY=$READONLY }\
 ${PERSISTENT:+PERSISTENT=$PERSISTENT }\
 ${IMAGE:+IMAGE=$IMAGE }\
 ${LABELS:+LABELS=$LABELS }\
+${PRIMARY_VM_ID:+PRIMARY_VM_ID=$PRIMARY_VM_ID }\
 ${BSNAPSHOT:+BSNAPSHOT=$BSNAPSHOT }\
 "
     msg="${HOTPLUG_SAVE_AS:+HOTPLUG_SAVE_AS=$HOTPLUG_SAVE_AS }${HOTPLUG_SAVE_AS_ACTIVE:+HOTPLUG_SAVE_AS_ACTIVE=$HOTPLUG_SAVE_AS_ACTIVE }${HOTPLUG_SAVE_AS_SOURCE:+HOTPLUG_SAVE_AS_SOURCE=$HOTPLUG_SAVE_AS_SOURCE }"
@@ -1113,7 +1116,7 @@ ${SP_AUTH_TOKEN:+SP_AUTH_TOKEN=available }\
 
 function storpoolDR()
 {
-    local _SNAP="$1" _PARENT=
+    local _SNAP="$1" _PARENT= _CACHED=
     splog "storpoolDR($_SNAP)"
     #[ -n "$DR" ] || return 129
     [ -n "$_SNAP" ] || return 129
@@ -1121,24 +1124,44 @@ function storpoolDR()
         _PARENT="$_SNAP"
         splog "${_SNAP/@} != $_SNAP"
     else
-        prevId=0
-        while IFS=',' read name migrating syncingDataBytes; do
-            name=${name//\"/}
-            nameId=${name##*@}
-            if [ $nameId -gt $prevId ]; then
-                if [ "$migrating" = "false" ]; then
-                    _PARENT="$name"
-                    #splog "PARENT:$_PARENT"
-                else
-                    splog "$name is newer but not complete! syncingDataBytes:$syncingDataBytes"
-                fi
+        if [ -x "/usr/lib/storpool/oneManage/lastBackup.sh" ]; then
+            if [ -f "/var/lib/one/vms/$VM_ID/lastBackup" ]; then
+                sList="$(cat "/var/lib/one/vms/$VM_ID/lastBackup")"
+                _CACHED="/var/lib/one/vms/$VM_ID/lastBackup"
+            else
+                sList="$(/usr/lib/storpool/oneManage/lastBackup.sh "$PRIMARY_VM_ID")"
+                echo "$sList" >"/var/lib/one/vms/$VM_ID/lastBackup"
             fi
-            prevId=$nameId
-        done < <(storpoolRetry -j volume status | jq -r --arg name "${_SNAP}" '.data|map(select(.name|contains($name)))[]|[.name,.migrating,.syncingDataBytes]|@csv')
+            ret=$?
+            if [ $ret -ne 0 ]; then
+                return 129
+            fi
+            for snp in $sList; do
+                if [ "$_SNAP" = "${snp%@*}" ]; then
+                    _PARENT="$snp"
+                    break
+                fi
+            done
+        else
+            prevId=0
+            while IFS=',' read name migrating syncingDataBytes; do
+                name=${name//\"/}
+                nameId=${name##*@}
+                if [ $nameId -gt $prevId ]; then
+                    if [ "$migrating" = "false" ]; then
+                        _PARENT="$name"
+                        #splog "PARENT:$_PARENT"
+                    else
+                        splog "$name is newer but not complete! syncingDataBytes:$syncingDataBytes"
+                    fi
+                fi
+                prevId=$nameId
+            done < <(storpoolRetry -j volume status | jq -r --arg name "${_SNAP}" '.data|map(select(.name|contains($name)))[]|[.name,.migrating,.syncingDataBytes]|@csv')
+        fi
     fi
     if [ -n "$_PARENT" ]; then
         SP_PARENT="$_PARENT"
-        splog "storpoolDR($_SNAP): SP_PARENT=$SP_PARENT"
+        splog "storpoolDR($_SNAP): SP_PARENT=$SP_PARENT ${_CACHED}"
     else
         return 130
     fi
