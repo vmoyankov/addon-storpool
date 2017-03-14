@@ -37,9 +37,11 @@ if [ -f "/etc/storpool/addon-storpool.conf" ]; then
     source "/etc/storpool/addon-storpool.conf"
 fi
 
-if [ -f "${DRIVER_PATH}/../../tm/storpool/storpool_common.sh"]; then
+if [ -f "${DRIVER_PATH}/../../tm/storpool/storpool_common.sh" ]; then
 	LOG_PREFIX="ds"
-	surce "${DRIVER_PATH}/../../tm/storpool/storpool_common.sh"
+	source "${DRIVER_PATH}/../../tm/storpool/storpool_common.sh"
+else
+	splog "${DRIVER_PATH}/../../tm/storpool/storpool_common.sh not found!"
 fi
 
 if boolTrue "$DEBUG_DATASTORE_MONITOR"; then
