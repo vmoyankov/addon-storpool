@@ -211,7 +211,7 @@ function storpoolClientId()
         hst="$HOST_HOSTNAME"
     fi
     if [ -n "$HOST_SP_OURID" ]; then
-        if [ "${HOST_SP_OURID}//[[:digit:]]/" = "" ]; then
+        if [ "${HOST_SP_OURID//[[:digit:]]/}" = "" ]; then
             result="$HOST_SP_OURID"
             splog "$hst CLIENT_ID=$result"
         else
