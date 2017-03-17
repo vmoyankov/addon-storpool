@@ -58,6 +58,7 @@ DEBUG_oneDsDriverAction=
 
 AUTO_TEMPLATE=1
 SP_WAIT_LINK=1
+VMSNAPSHOTS_DELETE_ON_TERMINATE=1
 
 function lookup_file()
 {

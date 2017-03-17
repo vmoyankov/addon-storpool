@@ -117,5 +117,9 @@ else
     storpoolVolumeDetach "$SP_VOL" "force" "" "all" "$READONLY"
 fi
 
+if [ "$VMSNAPSHOTS_DELETE_ON_TERMINATE" = "1" ]; then
+    storpoolVolumeSnapshotsDelete "${SP_VOL}-${SNAP_TAG}-"
+fi
+
 splog "END $VM_ID"
 exit 0
