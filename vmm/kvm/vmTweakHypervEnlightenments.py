@@ -25,8 +25,11 @@
 #  "$(dirname $0)/vmTweakHypervEnlightenments.py" "$domain"
 
 
-from sys import argv
+import sys
 import syslog
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
+#import ipdb; ipdb.set_trace() # BREAKPOINT
 
 dbg = 0
 thrnum = u'1'
@@ -34,85 +37,74 @@ thrnum = u'1'
 if dbg:
 	syslog.openlog('vmTweakVirtioHypervEnlightenments.py', syslog.LOG_PID)
 
-try:
-	import lxml.etree as ET
-except ImportError:
-	raise RuntimeError("lxml Python module not found! Install from distribution package or pip install lxml")
+def format_xml(elem, level=0, indent="    "):
+    nl = "\n" + indent * level
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = nl + indent
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = nl
+        for elem in elem:
+            format_xml(elem, level+1, indent)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = nl
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = nl
 
-xmlFile = argv[1]
 
-et = ET.parse(xmlFile, ET.XMLParser(strip_cdata=False,remove_blank_text=True))
+xmlFile = sys.argv[1]
 
-# ugly but working
-domain = et.getroot()[0].getparent()
-
-vm_name = et.find(".//name").text
-
-for i in range(len(domain)):
-	if domain[i].tag == 'clock':
-		clock = domain[i]
+doc = ET.parse(xmlFile)
+domain = doc.getroot()
+vm_name = domain.find("name").text
 
 # add iothreads
-iothreads = ET.Element("iothreads")
+iothreads = ET.SubElement(domain, "iothreads")
 iothreads.text = thrnum
-domain.append(iothreads)
 
 # configure all drives to use thread 1
-try:
-	alldevices = [ i for i in domain if i.tag == 'devices' ][0]
-	# filter only dev="vd...
-	drives = [ j for j in alldevices if j.tag == 'disk' and [l for l in j if 'dev="vd' in ET.tostring(l)]]
-	for dev in drives:
-		if dev.tag == 'disk':
-			# loop on all elements
-			for el in dev:
-				 if el.tag == 'driver':
-					for e in el.items():
-						# check if io=native already set
-						if e[0] == 'io' and e[1] == 'native':
-							# tweak iothread for this device
-							el.set('iothread', thrnum)
-except IndexError:
-	# no devices section found
-	pass
+for disk in domain.findall('devices/disk'):
+    # only vd* disks
+    target = disk.find('target')
+    dev = target.get('dev')
+    if dev is None or dev[:2] != 'vd':
+        continue
+    disk_drv = disk.find('driver[@io="native"]')
+    if disk_drv is not None:
+        disk_drv.set('iothread', thrnum)
 
-conf = ET.Element('driver', iothread = thrnum)
-try:
-	alldevices = [ i for i in domain if i.tag == 'devices' ][0]
-	# set iothread on scsi controllers
-	controllers = [ c for c in alldevices if c.tag == 'controller' and 'model="virtio-scsi"' in ET.tostring(c) ][0]
-	for controller in controllers:
-		try:
-			driver = [ e for e in controller if e.tag == 'driver'][0]
-		except IndexError:
-			# no such element
-			controller.append(conf)
-except IndexError:
-	# no controllers found adding a scsi controller
-	ctrl=(ET.Element('controller', type = 'scsi', model = 'virtio-scsi'))
-#	ctrl=(ET.Element('controller', type = 'scsi', index = '0', model = 'virtio-scsi'))
-#	ctrl.append(ET.Element('alias', name = 'scsi0'))
-#	ctrl.append(ET.Element('address', type = 'pci', domain="0x0000", bus="0x00", slot="0x04", function="0x0"))
-	ctrl.append(conf)
-	alldevices.append(ctrl)
 
+new_driver = ET.Element('driver', iothread=thrnum)
+
+# check existing disk controllers model virtio-scsi
+# or create new controller if not exist
+# add <driver iothred="..."> to each disk controller
+# or set iothread attribute to <driver> if exists
+controllers = domain.findall('devices/controller[@model="virtio-scsi"]')
+for controller in controllers:
+    driver = controller.find('driver')
+    if driver is None:
+        controller.append(new_driver)
+    else:
+        driver.set('iothread', thrnum)
+if len(controllers) == 0 :
+    devices = domain.find('devices')
+    controller = ET.SubElement(devices, 'controller',
+            type='scsi', model='virtio-scsi')
+    controller.append(new_driver)
+
+
+# Add clock and timers to windows VMs
 # It is possible to recognize windows VMs by the availability of /domain/featrues/hyperv entry
-if et.find(".//hyperv") is not None:
-	try:
-		if not ET.iselement(clock):
-			pass
-	except NameError:
-		clock = ET.Element("clock", offset = 'utc')
-		domain.append(clock)
-	
-	# improve clock settings for windows based hosts
-	clock.append(ET.Element("timer", name = 'hypervclock', present = "yes"))
-	clock.append(ET.Element("timer", name = 'rtc', tickpolicy = 'catchup'))
-	clock.append(ET.Element("timer", name = 'pit', tickpolicy = 'delay'))
-	clock.append(ET.Element("timer", name = 'hpet', present = 'no'))
-	clock.append(ET.Element("timer", name = 'hypervclock', present = 'yes'))
+if domain.find('features/hyperv') is not None:
+    clock = domain.find('clock')
+    if clock is None:
+        clock = ET.SubElement(domain, 'clock', offset='utc')
+    ET.SubElement(clock, "timer", name='hypervclock', present="yes")
+    ET.SubElement(clock, "timer", name='rtc', tickpolicy='catchup')
+    ET.SubElement(clock, "timer", name='pit', tickpolicy='delay')
+    ET.SubElement(clock, "timer", name='hpet', present='no')
 
-#with open('{0}-{1}.XML'.format(xmlFile,vm_name), 'w') as d:
-#	d.write(ET.tostring(domain, pretty_print = True))
-
-et.write(xmlFile,pretty_print=True)
+format_xml(domain, indent='    ')
+doc.write(xmlFile)
